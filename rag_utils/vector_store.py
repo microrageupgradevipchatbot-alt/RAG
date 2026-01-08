@@ -7,7 +7,7 @@ import os
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from .setup import (DB_DIR,DOC_DIR,get_gemini_llm,get_gemini_embeddings,logger)
-from .prompt import build_prompt,build_prompt_v3,build_prompt_v4
+from .prompt import build_prompt, build_prompt_v7,build_prompt_v3,build_prompt_v4,build_prompt_v5,build_prompt_v6
 from pathlib import Path
 
 embeddings= get_gemini_embeddings()
@@ -48,8 +48,8 @@ def load_documents(folder_path):
 
 def create_chunks(documents):
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200
+        chunk_size=3500,
+        chunk_overlap=450
         )
     docs = text_splitter.split_documents(documents)
     logger.info(f"Created {len(docs)} chunks from {len(documents)} documents.")
@@ -111,32 +111,34 @@ def get_gemini_response(query,context, chat_history):
     llm = get_gemini_llm()
     return llm.invoke(prompt).content
 
+def get_gemini_response_v2(query,context, chat_history):
+    #api_key = os.getenv("GOOGLE_API_KEY")
+    prompt = build_prompt_v4(query, context, chat_history)
+    llm = get_gemini_llm()
+    return llm.invoke(prompt).content
+
+def get_gemini_response_v3(query,context, chat_history):
+    #api_key = os.getenv("GOOGLE_API_KEY")
+    logger.info(f"Chat history in vector_store.py: {chat_history}")
+    prompt = build_prompt_v5(query, context, chat_history)
+    llm = get_gemini_llm()
+    return llm.invoke(prompt).content
+
+def get_gemini_response_v4(query,context, chat_history):
+    #api_key = os.getenv("GOOGLE_API_KEY")
+    logger.info(f"Chat history in vector_store.py: {chat_history}")
+    prompt = build_prompt_v6(query, context, chat_history)
+    llm = get_gemini_llm()
+    return llm.invoke(prompt).content
+
+def get_gemini_response_v5(query,context, chat_history):
+    #api_key = os.getenv("GOOGLE_API_KEY")
+    logger.info(f"Chat history in vector_store.py: {chat_history}")
+    prompt = build_prompt_v7(query, context, chat_history)
+    llm = get_gemini_llm()
+    return llm.invoke(prompt).content
+
+#---- New functions for button operations ----
 
 
-    """Save uploaded file to the documents folder. Only accepts .txt and .md files up to 200MB."""
-    try:
-        # Check file extension
-        if not uploaded_file.name.endswith(('.txt', '.md')):
-            logger.warning(f"⚠️ Invalid file type: {uploaded_file.name}")
-            return False, "Only .txt and .md files are allowed!"
-        
-        # Check file size (200MB = 200 * 1024 * 1024 bytes)
-        max_size = 200 * 1024 * 1024  # 200MB in bytes
-        file_size = uploaded_file.size
-        
-        if file_size > max_size:
-            logger.warning(f"⚠️ File too large: {uploaded_file.name} ({file_size / (1024*1024):.2f}MB)")
-            return False, f"File size exceeds 200MB limit. Your file is {file_size / (1024*1024):.2f}MB."
-        
-        if not os.path.exists(DOC_DIR):
-            os.makedirs(DOC_DIR)
-        
-        file_path = os.path.join(DOC_DIR, uploaded_file.name)
-        with open(file_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        
-        logger.info(f"✅ File uploaded: {uploaded_file.name} ({file_size / (1024*1024):.2f}MB)")
-        return True, f"File '{uploaded_file.name}' uploaded successfully! ({file_size / (1024*1024):.2f}MB)"
-    except Exception as e:
-        logger.error(f"❌ Error uploading file: {e}")
-        return False, f"Error uploading file: {e}"
+

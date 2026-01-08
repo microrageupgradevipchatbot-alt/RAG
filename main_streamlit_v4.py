@@ -1,13 +1,14 @@
 import streamlit as st
-from rag_utils.vector_store import DOC_DIR, get_gemini_response, DatasetEmptyError, checking_vector_store
+from rag_utils.vector_store import DOC_DIR, get_gemini_response, DatasetEmptyError, checking_vector_store,get_gemini_response_v2,get_gemini_response_v3,get_gemini_response_v4
 from rag_utils.retriever import retrieve_docs, get_context
 from rag_utils.prompt import build_prompt
-from rag_utils.setup import eval_logger
+from rag_utils.setup import eval_logger, logger
 
 def submit_on_enter():
     st.session_state._submitted = True
-st.set_page_config(page_title="UpgradeVIP RAG ASSISTANT 🤖", layout="wide")
-st.title("UpgradeVIP RAG ASSISTANT 🤖")
+
+st.set_page_config(page_title="UpgradeVIP RAG Chatbot Version: 4.0", layout="wide")
+st.title("UpgradeVIP RAG Chatbot Version: 4.0")
 
 # Custom CSS for orange button with white text
 st.markdown("""
@@ -46,7 +47,8 @@ else:
     query = st.text_input(
     "Welcome to the Upgarde Vip AI powered chatbot. Ask any query related to Upgrade vip:",
     key="query_input",
-    on_change=submit_on_enter
+    on_change=submit_on_enter,
+    autocomplete="off"  # <--- add this line
 )
     # Place ASK button on the left below the text field
     col1, col2 = st.columns([1, 5])
@@ -61,29 +63,30 @@ else:
             st.info("👋 Exiting RAG pipeline.")
 
         else:
-            # Use last 4 exchanges (8 messages) as chat history
-            recent_history = st.session_state.chat_history[-4:] if len(st.session_state.chat_history) > 0 else None
+            try:# Use last 4 exchanges (8 messages) as chat history
+                recent_history = st.session_state.chat_history[-4:] if len(st.session_state.chat_history) > 0 else None
+                logger.info(f"Recent chat history: {recent_history}")
+                retrieved_docs = retrieve_docs(query, chromaDB)
+                context = "\n\n".join([doc.page_content for doc in retrieved_docs])
+                with st.spinner("Generating answer..."):
+                    answer = get_gemini_response_v4(query, context, chat_history=recent_history)
+                st.markdown(f"**Assistant:** {answer}")
 
-            retrieved_docs = retrieve_docs(query, chromaDB)
-            context = "\n\n".join([doc.page_content for doc in retrieved_docs])
-            with st.spinner("Generating answer..."):
-                answer = get_gemini_response(query, context, chat_history=recent_history)
-            st.markdown(f"**Assistant:** {answer}")
+                # Store conversation
+                st.session_state.chat_history.append({"user": query, "assistant": answer})
 
-            # Store conversation
-            st.session_state.chat_history.append({"user": query, "assistant": answer})
+                eval_logger.info(
+                    f"\n\n\n\nmain_streamlit_v4\n**Query:** {query}\n"
+                    f"**Context:** {context}\n"
+                    f"**Answer:** {answer}\n"
+                    "----------------------------------------"
+                )
 
-            eval_logger.info(
-                f"**Query:** {query}\n"
-                f"**Context:** {context}\n"
-                f"**Answer:** {answer}\n"
-                "----------------------------------------"
-            )
-
-            with st.expander("Show retrieved chunks"):
-                for i, doc in enumerate(retrieved_docs):
-                    st.write(f"**Chunk {i+1}:** {doc.page_content}")
-
+                with st.expander("Show retrieved chunks"):
+                    for i, doc in enumerate(retrieved_docs):
+                        st.write(f"**Chunk {i+1}:** {doc.page_content}")
+            except Exception as e:
+                st.error(f"An error occurred while processing your request: {e}")
     # Optional: Show chat history in the UI
     if st.session_state.chat_history:
         with st.expander("🕑 Chat History"):

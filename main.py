@@ -1,5 +1,5 @@
 from rag_utils.vector_store import checking_vector_store
-from rag_utils.vector_store import DOC_DIR, get_gemini_response
+from rag_utils.vector_store import DOC_DIR, get_gemini_response,delete_vector_store
 from rag_utils.retriever import retrieve_docs, get_context
 from rag_utils.prompt import build_prompt
 from rag_utils.setup import logger, eval_logger
@@ -29,7 +29,7 @@ while True:
     
 
     eval_logger.info(
-            f"checking build prompt v3 on sir dataset\n\n"
+            f"checking build prompt v3 on hamza dataset\n\n"
             f"**Query:** {query}\n"
             f"**Context:** {context}\n"
             f"**Answer:** {answer}\n"
