@@ -60,12 +60,12 @@ eval_logger = setup_evaluation_logger()
 
 #
 #=================================== Model Gemini =========================================
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-
-if GOOGLE_API_KEY:
-    logger.info("GOOGLE_API_KEY loaded successfully.")
-else:
-    logger.info("GOOGLE_API_KEY not found. Please set it in your environment or .env file.")
+try:
+    import streamlit as st
+    GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY") or os.getenv("GOOGLE_API_KEY")
+except:
+    load_dotenv()
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 def get_gemini_embeddings():
     #api_key = os.getenv("GOOGLE_API_KEY")
