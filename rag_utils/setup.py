@@ -1,9 +1,6 @@
-import os
 from pathlib import Path
-from dotenv import load_dotenv
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 import logging
-load_dotenv()
 
 # ==================================== Chroma db and docs function =========================================
 
@@ -60,6 +57,7 @@ eval_logger = setup_evaluation_logger()
 
 #
 #=================================== Model Gemini =========================================
+GOOGLE_API_KEY = None
 try:
     import streamlit as st
     GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY") or os.getenv("GOOGLE_API_KEY")
@@ -68,14 +66,12 @@ except:
     GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 def get_gemini_embeddings():
-    #api_key = os.getenv("GOOGLE_API_KEY")
     embeddings = GoogleGenerativeAIEmbeddings(
         model="gemini-embedding-001",
         google_api_key=GOOGLE_API_KEY
     )
     return embeddings
 def get_gemini_llm():
-    #api_key = os.getenv("GOOGLE_API_KEY")
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
         google_api_key=GOOGLE_API_KEY,
