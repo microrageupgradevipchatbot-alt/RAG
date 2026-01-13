@@ -7,7 +7,7 @@ langchain-community
 langchain-google-genai
 
 # Vector Store
-langchain-chromadb
+langchain-chroma
 
 # Google AI
 google-generativeai
