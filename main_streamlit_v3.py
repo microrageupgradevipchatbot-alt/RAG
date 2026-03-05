@@ -26,21 +26,22 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+
 @st.cache_resource
-def get_chroma_db():
+def get_faiss_db():
     try:
         return checking_vector_store()
     except DatasetEmptyError as e:
         st.warning(str(e))
         return None
 
-chromaDB = get_chroma_db()
+faiss_db = get_faiss_db()
 
 # --- Chat history logic ---
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []  # List of dicts: [{"user": "...", "assistant": "..."}]
 
-if chromaDB is None:
+if faiss_db is None:
     st.error("⚠️ No documents available. Please upload documents to DATA/Docs and create the vector store.")
     st.info("👉 Steps:\n1. Add .txt or .md files to the DATA/Docs folder\n2. Restart the app or recreate the vector store")
 else:
@@ -66,7 +67,7 @@ else:
             # Use last 4 exchanges (8 messages) as chat history
             recent_history = st.session_state.chat_history[-4:] if len(st.session_state.chat_history) > 0 else None
             logger.info(f"Recent chat history: {recent_history}")
-            retrieved_docs = retrieve_docs(query, chromaDB)
+            retrieved_docs = retrieve_docs(query, faiss_db)
             context = "\n\n".join([doc.page_content for doc in retrieved_docs])
             with st.spinner("Generating answer..."):
                 answer = get_gemini_response_v3(query, context, chat_history=recent_history)
